@@ -2,6 +2,7 @@
  $username = filter_input(INPUT_POST, 'fname');
  $password = filter_input(INPUT_POST, 'lname');
   $age = filter_input(INPUT_POST, 'age');
+  
  if (!empty($username)){
 if (!empty($password)){
 $servername = "sql163.main-hosting.eu";
