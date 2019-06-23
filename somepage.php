@@ -1,29 +1,40 @@
 <?php
-$username = $_POST['fname'];
-$password = $_POST['lname'];
-$gender = $_POST['age'];
+ $username = filter_input(INPUT_POST, 'fname');
+ $password = filter_input(INPUT_POST, 'lname');
+  $age = filter_input(INPUT_POST, 'age');
+ if (!empty($username)){
+if (!empty($password)){
+$servername = "sql163.main-hosting.eu";
+$username = "u603110860_user";
+$password = "PCg9zUCvJYq9";
+$dbname = "u603110860_data";
 
-if (!empty($username) || !empty($password) || !empty($gender) ) {
- $host = "sql163.main-hosting.eu";
-    $dbUsername = "u603110860_user";
-    $dbPassword = "PFba9TXY70gI";
-    $dbname = "u603110860_data";
-    //create connection
-    $conn = new mysqli($host, $dbUsername, $dbPassword, $dbname);
-    if (mysqli_connect_error()) {
-     die('Connect Error('. mysqli_connect_errno().')'. mysqli_connect_error());
-    } else {
-     $INSERT = "INSERT Into register (username, password, gender) values(?, ?, ?)";
-
-      $stmt->close();
-      $stmt = $conn->prepare($INSERT);
-      $stmt->bind_param("ssssii", $username, $password, $gender);
-      $stmt->execute();
-     $stmt->close();
-     $conn->close();
-    }
-} else {
- echo "All field are required";
- die();
+// Create connection
+$conn = new mysqli ($host, $dbusername, $dbpassword, $dbname);
+if (mysqli_connect_error()){
+die('Connect Error ('. mysqli_connect_errno() .') '
+. mysqli_connect_error());
+}
+else{
+$sql = "INSERT INTO account (username, password, age)
+values ('$username','$password','$age')";
+if ($conn->query($sql)){
+echo "New record is inserted sucessfully";
+}
+else{
+echo "Error: ". $sql ."
+". $conn->error;
+}
+$conn->close();
+}
+}
+else{
+echo "Password should not be empty";
+die();
+}
+}
+else{
+echo "Username should not be empty";
+die();
 }
 ?>
