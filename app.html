@@ -82,7 +82,7 @@
 			var tableService = AzureStorage.Table.createTableServiceWithSas(tableUri, '?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-23T15:07:25Z&st=2019-06-23T07:07:25Z&spr=https&sig=4D1rpFacafW7jjoHKKF0bEjLNWdIbs89jgHq7seoM%2B0%3D');
             var rIndex,
                 table = document.getElementById("table");
-            tableService.createTableIfNotExists('food', function(error, result) {if (error) {} else {}});
+            tableService.createTableIfNotExists('mytable', function(error, result) {if (error) {} else {}});
             var azure = require('azure-storage');
 			var tableService = azure.createTableService();
 			// check the empty input
