@@ -76,15 +76,230 @@
                 <button onclick="editHtmlTbleSelectedRow();">ask</button>
             </div>
         </div>
-        
         <script>
-            var tableUri = 'https://' + 'food' + '.table.core.windows.net';
-			var tableService = AzureStorage.Table.createTableServiceWithSas(tableUri, '?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-23T15:07:25Z&st=2019-06-23T07:07:25Z&spr=https&sig=4D1rpFacafW7jjoHKKF0bEjLNWdIbs89jgHq7seoM%2B0%3D');
-            var rIndex,
-                table = document.getElementById("table");
+		
+            var account = 'food';
+            var sas = '?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-23T15:07:25Z&st=2019-06-23T07:07:25Z&spr=https&sig=4D1rpFacafW7jjoHKKF0bEjLNWdIbs89jgHq7seoM%2B0%3D';
+            var table = '';
+            var tableUri = '';
+
+            function checkParameters() {
+
+                if (account == null || account.length < 1)
+                {
+                    alert('Please enter a valid storage account name!');
+                    return false;
+                }
+                if (sas == null || sas.length < 1)
+                {
+                    alert('Please enter a valid SAS Token!');
+                    return false;
+                }
+
+                return true;
+            }
+
+            function getTableService() {
+                if (!checkParameters())
+                    return null;
+
+                tableUri = 'https://food.table.core.windows.net';
+                var tableService = AzureStorage.Table.createTableServiceWithSas(tableUri, sas).withFilter(new AzureStorage.Table.ExponentialRetryPolicyFilter());
+                return tableService;
+            }
+
+            function refreshTableList()
+            {
+                var tableService = getTableService();
+                if (!tableService)
+                    return;
+
+                document.getElementById('tables').innerHTML = 'Loading table list...';
+                tableService.listTablesSegmented(null, {maxResults : 200}, function(error, results) {
+                    if (error) {
+                        alert('List table list error, please open browser console to view detailed error');
+                        console.log(error);
+                    } else {
+                        var output = [];
+                        output.push('<tr>',
+                                        '<th>TableName</th>',
+                                        '<th>Operations</th>',
+                                    '</tr>');
+                        if (results.entries.length < 1) {
+                            output.push('<tr><td>Empty results...</td></tr>');
+                        }
+                        for (var i = 0, table; table = results.entries[i]; i++) {
+                            output.push('<tr>',
+                                            '<td>', table, '</td>',
+                                            '<td>', '<button class="btn btn-xs btn-danger" onclick="deleteTable(\'', table ,'\')">Delete</button> ',
+                                                    '<button class="btn btn-xs btn-success" onclick="viewTable(\'', table ,'\')">Select</button>', '</td>',
+                                        '</tr>');
+                        }
+                        document.getElementById('tables').innerHTML = '<table class="table table-condensed table-bordered">' + output.join('') + '</table>';
+                    }
+                });
+            }
+
+            function createTable() {
+                var tableService = getTableService();
+                if (!tableService)
+                    return;
+
+                var table = document.getElementById('newtable').value;
+                if (!AzureStorage.Table.Validate.tableNameIsValid(table, function(err, res){})) {
+                    alert('Invalid table name!');
+                    return;
+                }
+                tableService.createTableIfNotExists(table.toLowerCase(), function(error, result) {
+                    if (error) {
+                        alert('Create table failed, open browser console for more detailed info.');
+                        console.log(error);
+                    } else {
+                        alert('Create ' + table + ' successfully!');
+                        refreshTableList();
+                    }
+                });
+            }
+
+            function deleteTable(table) {
+                var tableService = getTableService();
+                if (!tableService)
+                    return;
+
+                tableService.deleteTableIfExists(table, function(error, result) {
+                    if (error) {
+                        alert('Delete table failed, open browser console for more detailed info.');
+                        console.log(error);
+                    } else {
+                        alert('Delete ' + table + ' successfully!');
+                        refreshTableList();
+                    }
+                });
+            }
+
+            function viewTable(selectedTable) {
+                table = selectedTable;
+                alert('Selected ' + table + ' !');
+                refreshEntityList();
+            }
+
+            function refreshEntityList() {
+                var tableService = getTableService();
+                if (!tableService)
+                    return;
+
+                if (table == null || table.length < 1) {
+                    alert('Please select a table from table list!')
+                    return;
+                }
+
+                document.getElementById('result').innerHTML = 'Loading table entities...';
+                var tableQuery = new AzureStorage.Table.TableQuery().top(200);
+                tableService.queryEntities(table, tableQuery, null, function(error, results) {
+                    if (error) {
+                        alert('List table entities error, please open browser console to view detailed error');
+                        console.log(error);
+                    } else {
+                        var output = [];
+                        output.push('<tr>',
+                                        '<th>PartitionKey</th>',
+                                        '<th>RowKey</th>',
+                                        '<th>Custom Property 1</th>',
+                                        '<th>Custom Property 2</th>',
+                                        '<th>Timestamp</th>',
+                                        '<th>Operations</th>',
+                                    '</tr>');
+                        if (results.entries.length < 1) {
+                            output.push('<tr><td>Empty results...</td></tr>');
+                        }
+                        for (var i = 0, entity; entity = results.entries[i]; i++) {
+                            var cp1 = '';
+                            var cp2 = '';
+
+                            if (typeof entity.CustomProperty1 !== 'undefined') {
+                                cp1 = entity.CustomProperty1._;
+                            }
+                            if (typeof entity.CustomProperty2 !== 'undefined') {
+                                cp2 = entity.CustomProperty2._;
+                            }
+
+                            output.push('<tr>',
+                                            '<td>', entity.PartitionKey._, '</td>',
+                                            '<td>', entity.RowKey._, '</td>',
+                                            '<td>', cp1, '</td>',
+                                            '<td>', cp2, '</td>',
+                                            '<td>', entity.Timestamp._, '</td>',
+                                            '<td>', '<button class="btn btn-xs btn-danger" onclick="deleteEntity(\'', entity.PartitionKey._ ,'\'', ',', '\'', entity.RowKey._ ,'\'',')">Delete</button>', '</td>',
+                                        '</tr>');
+                        }
+                        document.getElementById('result').innerHTML = '<table class="table table-condensed table-bordered">' + output.join('') + '</table>';
+                    }
+                });
+            }
+
+            function addEntity() {
+                var tableService = getTableService();
+                if (!tableService)
+                    return;
+
+                if (table == null || table.length < 1) {
+                    alert('Invalid table name!')
+                    return;
+                }
+
+                var partitionKey = fname;
+                var rowKey = lname;
+                var customProperty1 = age;
+                var customProperty2 = 'random shit';
+                var insertEntity = {
+                    PartitionKey: {'_': partitionKey},
+                    RowKey: {'_': rowKey},
+                    CustomProperty1: {'_': customProperty1},
+                    CustomProperty2: {'_': customProperty2}
+                };
+
+                tableService.insertOrMergeEntity(table, insertEntity, function(error, result, response) {
+                    if(error) {
+                        alert('Insert table entity error, please open browser console to view detailed error');
+                        console.log(error);
+                    } else {
+                        alert('Insert table entity successfully!');
+                        refreshEntityList();
+                    }
+                });
+            }
+
+            function deleteEntity(partitionKey, rowKey) {
+                var tableService = getTableService();
+                if (!tableService)
+                    return;
+
+                if (table == null || table.length < 1) {
+                    alert('Invalid table name!')
+                    return;
+                }
+
+                var deleteEntity = {
+                    PartitionKey: {'_': partitionKey},
+                    RowKey: {'_': rowKey}
+                };
+
+                tableService.deleteEntity(table, deleteEntity, function(error, result, response) {
+                    if(error) {
+                        alert('Delete table entity error, please open browser console to view detailed error');
+                        console.log(error);
+                    } else {
+                        alert('Delete table entity successfully!');
+                        refreshEntityList();
+                    }
+                });
+            }
+        
+		</script>
+        <script>
+			var rIndex,
+            table = document.getElementById("table");
             tableService.createTableIfNotExists('mytable', function(error, result) {if (error) {} else {}});
-            var azure = require('azure-storage');
-			var tableService = azure.createTableService();
 			// check the empty input
             function checkEmptyInput()
             {
@@ -127,13 +342,8 @@
                 cell1.innerHTML = fname;
                 cell2.innerHTML = lname;
                 cell3.innerHTML = age;
-				var entity = {
-					PartitionKey: entGen.String(fname),
-					RowKey: entGen.String(lname),
-					taskDone: entGen.int(age),
-				};
-				tableService.insertOrReplaceEntity('mytable', entity, function(error, result, response) {if (!error) { }});
-                // call the function to set the event to the new row
+				addEntity();
+// call the function to set the event to the new row
                 selectedRowToInput();
             
             }
@@ -165,17 +375,6 @@
                if(!checkEmptyInput()){
                 table.rows[rIndex].cells[2].innerHTML = age;
               }
-			  				var entity = {
-  PartitionKey: entGen.String(fname),
-  RowKey: entGen.String(lname),
-  taskDone: entGen.int(age),
-};
-
-tableService.insertOrReplaceEntity('mytable', entity, function(error, result, response) {
-  if (!error) {
-    // result contains the entity with field 'taskDone' set to `true`
-  }
-});
             }
             
             function removeSelectedRow()
