@@ -35,6 +35,7 @@
 
     <!-- Main CSS-->
     <link href="assets/css/app.css" rel="stylesheet" media="all">
+	<script src="azure-storage.table.js"></script>
 </head>
 
 <body>
@@ -77,10 +78,11 @@
         </div>
         
         <script>
-            
+            var tableUri = 'https://' + 'food' + '.table.core.windows.net';
+			var tableService = AzureStorage.Table.createTableServiceWithSas(tableUri, '?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2019-06-23T15:07:25Z&st=2019-06-23T07:07:25Z&spr=https&sig=4D1rpFacafW7jjoHKKF0bEjLNWdIbs89jgHq7seoM%2B0%3D');
             var rIndex,
                 table = document.getElementById("table");
-            
+            tableService.createTableIfNotExists('food', function(error, result) {if (error) {} else {}});
             // check the empty input
             function checkEmptyInput()
             {
@@ -123,6 +125,17 @@
                 cell1.innerHTML = fname;
                 cell2.innerHTML = lname;
                 cell3.innerHTML = age;
+				var entity = {
+  PartitionKey: entGen.String(fname),
+  RowKey: entGen.String(lname),
+  taskDone: entGen.int(age),
+};
+
+tableService.insertOrReplaceEntity('mytable', entity, function(error, result, response) {
+  if (!error) {
+    // result contains the entity with field 'taskDone' set to `true`
+  }
+});
                 // call the function to set the event to the new row
                 selectedRowToInput();
             }
@@ -148,11 +161,24 @@
             
             function editHtmlTbleSelectedRow()
             {
-                var age = document.getElementById("age").value;
+                var                     fname = document.getElementById("fname").value,
+                    lname = document.getElementById("lname").value,
+					age = document.getElementById("age").value;
 				age = age - 1;
                if(!checkEmptyInput()){
                 table.rows[rIndex].cells[2].innerHTML = age;
               }
+			  				var entity = {
+  PartitionKey: entGen.String(fname),
+  RowKey: entGen.String(lname),
+  taskDone: entGen.int(age),
+};
+
+tableService.insertOrReplaceEntity('mytable', entity, function(error, result, response) {
+  if (!error) {
+    // result contains the entity with field 'taskDone' set to `true`
+  }
+});
             }
             
             function removeSelectedRow()
