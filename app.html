@@ -35,7 +35,7 @@
 
     <!-- Main CSS-->
     <link href="assets/css/app.css" rel="stylesheet" media="all">
-	<script src="azure-storage.table.js"></script>
+	
 </head>
 
 <body>
@@ -76,11 +76,13 @@
                 <button onclick="editHtmlTbleSelectedRow();">ask</button>
             </div>
         </div>
+        
         <script>
-			var rIndex,
-            table = document.getElementById("table");
-            tableService.createTableIfNotExists('mytable', function(error, result) {if (error) {} else {}});
-			// check the empty input
+            
+            var rIndex,
+                table = document.getElementById("table");
+            
+            // check the empty input
             function checkEmptyInput()
             {
                 var isEmpty = false,
@@ -122,10 +124,9 @@
                 cell1.innerHTML = fname;
                 cell2.innerHTML = lname;
                 cell3.innerHTML = age;
-				addEntity();
-// call the function to set the event to the new row
+                // call the function to set the event to the new row
                 selectedRowToInput();
-            
+            }
             }
             
             // display selected row data into input text
@@ -148,9 +149,7 @@
             
             function editHtmlTbleSelectedRow()
             {
-                var                     fname = document.getElementById("fname").value,
-                    lname = document.getElementById("lname").value,
-					age = document.getElementById("age").value;
+                var age = document.getElementById("age").value;
 				age = age - 1;
                if(!checkEmptyInput()){
                 table.rows[rIndex].cells[2].innerHTML = age;
