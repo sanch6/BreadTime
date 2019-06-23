@@ -69,12 +69,14 @@
                 </table>
             </div>
             <div class="tab tab-2">
+			<form action="insert.php" method="POST">
                 Food :<input type="text" name="fname" id="fname">
                 Location :<input type="text" name="lname" id="lname">
                 Amount :<input type="number" name="age" id="age">
-                
+                <input type="submit" value="Submit">
                 <button onclick="addHtmlTableRow();">Share</button>
                 <button onclick="editHtmlTbleSelectedRow();">ask</button>
+				</form>
             </div>
         </div>
         
@@ -82,7 +84,7 @@
             
             var rIndex,
                 table = document.getElementById("table");
-            
+                
             // check the empty input
             function checkEmptyInput()
             {
@@ -121,7 +123,7 @@
                     fname = document.getElementById("fname").value,
                     lname = document.getElementById("lname").value,
                     age = document.getElementById("age").value;
-            
+				$.get("somepage.php");
                 cell1.innerHTML = fname;
                 cell2.innerHTML = lname;
                 cell3.innerHTML = age;
