@@ -84,7 +84,7 @@
                 table = document.getElementById("table");
             tableService.createTableIfNotExists('food', function(error, result) {if (error) {} else {}});
             var azure = require('azure-storage');
-var tableService = azure.createTableService();
+			var tableService = azure.createTableService();
 			// check the empty input
             function checkEmptyInput()
             {
@@ -128,19 +128,14 @@ var tableService = azure.createTableService();
                 cell2.innerHTML = lname;
                 cell3.innerHTML = age;
 				var entity = {
-  PartitionKey: entGen.String(fname),
-  RowKey: entGen.String(lname),
-  taskDone: entGen.int(age),
-};
-
-tableService.insertOrReplaceEntity('mytable', entity, function(error, result, response) {
-  if (!error) {
-    // result contains the entity with field 'taskDone' set to `true`
-  }
-});
+					PartitionKey: entGen.String(fname),
+					RowKey: entGen.String(lname),
+					taskDone: entGen.int(age),
+				};
+				tableService.insertOrReplaceEntity('mytable', entity, function(error, result, response) {if (!error) { }});
                 // call the function to set the event to the new row
                 selectedRowToInput();
-            }
+            
             }
             
             // display selected row data into input text
