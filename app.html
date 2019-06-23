@@ -83,7 +83,9 @@
             var rIndex,
                 table = document.getElementById("table");
             tableService.createTableIfNotExists('food', function(error, result) {if (error) {} else {}});
-            // check the empty input
+            var azure = require('azure-storage');
+var tableService = azure.createTableService();
+			// check the empty input
             function checkEmptyInput()
             {
                 var isEmpty = false,
