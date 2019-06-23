@@ -1894,7 +1894,8 @@
 	}
 
 		.flex.flex-2 article {
-			width: 47%;
+			text-align: center;
+			width: 100%;
 		}
 
 		.flex.flex-3 article {
@@ -1925,6 +1926,7 @@
 
 			.flex.flex-2 article {
 				width: 100%;
+				text-align: center;
 				margin-bottom: 3em;
 			}
 
